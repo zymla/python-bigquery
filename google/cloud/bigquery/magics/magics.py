@@ -49,9 +49,10 @@
         this argument not used.
     * ``--verbose`` (Optional[line argument]):
         If this flag is used, information including the query job ID and the
-        amount of time for the query to complete will not be cleared after the
-        query is finished. By default, this information will be displayed but
-        will be cleared after the query is finished.
+        amount of time and data processed and billed for the query to complete
+        will not be cleared after the query is finished. By default, this
+        information will be displayed but will be cleared after the query is
+        finished.
     * ``--params <params>`` (Optional[line argument]):
         If present, the argument following the ``--params`` flag must be
         either:
@@ -324,10 +325,10 @@ def _run_query(client, query, job_config=None):
     Example:
         >>> client = bigquery.Client()
         >>> _run_query(client, "SELECT 17")
-        Executing query with job ID: bf633912-af2c-4780-b568-5d868058632b
-        Query executing: 1.66s
-        Query complete after 2.07s
-        'bf633912-af2c-4780-b568-5d868058632b'
+        Executing query with job ID: f45a96ed-f305-4d79-a28d-bcaa51eae7b9
+        Query executing: 0.79s
+        Job ID f45a96ed-f305-4d79-a28d-bcaa51eae7b9 successfully executed
+        Processed: 0.044 GB	Billed: 0.045 GB ~$0.00022
     """
     start_time = time.perf_counter()
     query_job = client.query(query, job_config=job_config)
@@ -348,6 +349,18 @@ def _run_query(client, query, job_config=None):
         except futures.TimeoutError:
             continue
     print(f"\nJob ID {query_job.job_id} successfully executed")
+    if 5 * query_job.total_bytes_billed / 1024 ** 4 > 1:
+        print(
+            f"Processed: {query_job.total_bytes_processed / 1024 ** 3:,.3f} GB\t"
+            f"Billed: {query_job.total_bytes_billed / 1024 ** 3:,.3f} GB "
+            f"~${5 * query_job.total_bytes_billed / 1024 ** 4:,.2f}"
+        )
+    else:
+        print(
+            f"Processed: {query_job.total_bytes_processed / 1024 ** 3:,.3f} GB\t"
+            f"Billed: {query_job.total_bytes_billed / 1024 ** 3:,.3f} GB "
+            f"~${5 * query_job.total_bytes_billed / 1024 ** 4:,.5f}"
+        )
     return query_job
 
 
@@ -479,9 +492,9 @@ def _create_dataset_if_necessary(client, dataset_id):
     default=False,
     help=(
         "If set, print verbose output, including the query job ID and the "
-        "amount of time for the query to finish. By default, this "
-        "information will be displayed as the query runs, but will be "
-        "cleared after the query is finished."
+        "amount of time and data processed and billed for the query to "
+        "finish. By default, this information will be displayed as the "
+        "query runs, but will be cleared after the query is finished."
     ),
 )
 @magic_arguments.argument(
