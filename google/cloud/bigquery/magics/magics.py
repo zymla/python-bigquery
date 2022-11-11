@@ -354,7 +354,7 @@ def _run_query(client, query, job_config=None):
         print(
             "Processed: {:,.3f} GB".format(query_job.total_bytes_processed / 1024**3),
             "Billed: {:,.3f} GB".format(query_job.total_bytes_billed / 1024**3),
-            ("~${:,.2f}" if cost >=1 else "~${:,.5f}").format(cost),
+            ("~${:,.2f}" if cost >= 1 else "~${:,.5f}").format(cost),
             sep="\t"
         )
     except AttributeError:
