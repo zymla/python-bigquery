@@ -349,18 +349,16 @@ def _run_query(client, query, job_config=None):
         except futures.TimeoutError:
             continue
     print(f"\nJob ID {query_job.job_id} successfully executed")
-    if 5 * query_job.total_bytes_billed / 1024**4 > 1:
+    try:
+        cost = 5 * query_job.total_bytes_billed / 1024**4
         print(
-            f"Processed: {query_job.total_bytes_processed / 1024**3:,.3f} GB\t"
-            f"Billed: {query_job.total_bytes_billed / 1024**3:,.3f} GB "
-            f"~${5 * query_job.total_bytes_billed / 1024**4:,.2f}"
+            "Processed: {:,.3f} GB".format(query_job.total_bytes_processed / 1024**3),
+            "Billed: {:,.3f} GB".format(query_job.total_bytes_billed / 1024**3),
+            ("~${:,.2f}" if cost >=1 else "~${:,.5f}").format(cost),
+            sep="\t"
         )
-    else:
-        print(
-            f"Processed: {query_job.total_bytes_processed / 1024**3:,.3f} GB\t"
-            f"Billed: {query_job.total_bytes_billed / 1024**3:,.3f} GB "
-            f"~${5 * query_job.total_bytes_billed / 1024**4:,.5f}"
-        )
+    except AttributeError:
+        pass
     return query_job
 
 
